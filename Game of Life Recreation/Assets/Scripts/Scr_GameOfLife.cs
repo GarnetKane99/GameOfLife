@@ -93,6 +93,8 @@ public class Scr_GameOfLife : MonoBehaviour
             {
                 GridPieces[i].GetComponent<Scr_CellLogic>().InvokeRepeating("StartLife", Random.Range(0.5f, 1.0f), Random.Range(0.25f, m_UpdateTimeSeconds));
             }
+
+            ParentObject.transform.position = new Vector2(5, 0);
         }
     }
 

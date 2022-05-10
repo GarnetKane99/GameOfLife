@@ -16,6 +16,8 @@ public class Scr_CellLogic : MonoBehaviour
     [SerializeField] private List<GameObject> ConnectedTiles;
     public int[,] Position;
 
+    [SerializeField] private float ChanceToReproduce = 0.2f;
+
     private void Awake()
     {
         ConnectedTiles = new List<GameObject>();
@@ -61,6 +63,7 @@ public class Scr_CellLogic : MonoBehaviour
                 SheepLife();
                 break;
             case (Scr_GameOfLife.GridNames.Snail):
+                SnailLife();
                 break;
             case (Scr_GameOfLife.GridNames.Tree):
                 TreeLife();
@@ -73,6 +76,7 @@ public class Scr_CellLogic : MonoBehaviour
         }
         CurrLifetime++;
     }
+
     #region Fire Logic
     void FireLife()
     {
@@ -87,7 +91,14 @@ public class Scr_CellLogic : MonoBehaviour
             if (PosOne.Count > 0)
             {
                 int RandomLoc = Random.Range(0, PosOne.Count);
-                ReplaceLocation(PosOne[RandomLoc], Scr_GameOfLife.GridNames.Fire, 1);
+                if (Random.value > ChanceToReproduce)
+                {
+                    ReplaceLocation(PosOne[RandomLoc], Scr_GameOfLife.GridNames.Fire, 1);
+                }
+                else
+                {
+                    ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
+                }
             }
             else
             {
@@ -127,11 +138,26 @@ public class Scr_CellLogic : MonoBehaviour
             else if(PosFound.Count > 0 && NeighbourSheeps.Count > 0)
             {
                 int RandomLoc = Random.Range(0, PosFound.Count);
-                ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Sheep, 3);
+                if (Random.value > (ChanceToReproduce + 0.3f))
+                {
+                    ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Sheep, 3);
+                    ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
+                }
+                else
+                {
+                    ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Sheep, 3);
+                }
             }
             else
             {
-                ReplaceLocation(Position, Scr_GameOfLife.GridNames.Grass, 2);
+                if (Random.value > ChanceToReproduce)
+                {
+                    ReplaceLocation(Position, Scr_GameOfLife.GridNames.Fire, 1);
+                }
+                else
+                {
+                    ReplaceLocation(Position, Scr_GameOfLife.GridNames.Grass, 2);
+                }
             }
         }
     }
@@ -147,11 +173,58 @@ public class Scr_CellLogic : MonoBehaviour
             if (PosFound.Count > 0)
             {
                 int RandomLoc = Random.Range(0, PosFound.Count);
-                ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Tree, 5);
+                if (Random.value > ChanceToReproduce)
+                {
+                    ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Tree, 5);
+                }
             }
             else
             {
                 ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
+            }
+        }
+    }
+    #endregion
+
+    #region Snail Logic
+    void SnailLife()
+    {
+        if (Mathf.FloorToInt(Random.value * 1.99f) >= ChanceToMove || CurrLifetime > 3)
+        {
+            List<int[,]> PosFoundOne = new List<int[,]>();
+            List<int[,]> PosFoundTwo = new List<int[,]>();
+            List<int[,]> PosFoundThree = new List<int[,]>();
+            List<int[,]> PosFoundWater = new List<int[,]>();
+
+            PosFoundOne = PositionsToCheck(Scr_GameOfLife.GridNames.Grass);
+            PosFoundTwo = PositionsToCheck(Scr_GameOfLife.GridNames.Dirt);
+            PosFoundThree = PositionsToCheck(Scr_GameOfLife.GridNames.Fire);
+
+            PosFoundWater = PositionsToCheck(Scr_GameOfLife.GridNames.Water);
+
+            PosFoundOne.AddRange(PosFoundTwo);
+            PosFoundOne.AddRange(PosFoundThree);
+
+            if (PosFoundOne.Count > 0 && PosFoundWater.Count == 0)
+            {
+                int RandomLoc = Random.Range(0, PosFoundOne.Count);
+                ReplaceLocation(PosFoundOne[RandomLoc], Scr_GameOfLife.GridNames.Snail, 4);
+                ReplaceLocation(Position, Scr_GameOfLife.GridNames.Grass, 2);
+            }
+            else if (PosFoundWater.Count > 0 && PosFoundOne.Count > 1)
+            {
+                int RandomLoc = Random.Range(0, PosFoundOne.Count);
+                int RandomLoc2 = Random.Range(0, PosFoundOne.Count);
+                if (RandomLoc != RandomLoc2)
+                {
+                    ReplaceLocation(Position, Scr_GameOfLife.GridNames.Grass, 2);
+                    ReplaceLocation(PosFoundOne[RandomLoc], Scr_GameOfLife.GridNames.Snail, 4);
+                    ReplaceLocation(PosFoundOne[RandomLoc2], Scr_GameOfLife.GridNames.Sheep, 3);
+                }
+                else
+                {
+                    return;
+                }
             }
         }
     }
@@ -177,6 +250,5 @@ public class Scr_CellLogic : MonoBehaviour
         ManagerInstance.GridCoordinates[Pos.GetLength(0), Pos.GetLength(1)].GetComponent<SpriteRenderer>().sprite = ManagerInstance.CellsToSpawn[CellPos];
         ManagerInstance.GridTypeFound[Pos.GetLength(0), Pos.GetLength(1)] = newType;
         ManagerInstance.GridCoordinates[Pos.GetLength(0), Pos.GetLength(1)].GetComponent<Scr_CellLogic>().InitializeCellType(newType);
-
     }
 }
