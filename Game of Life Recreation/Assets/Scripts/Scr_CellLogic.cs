@@ -17,10 +17,14 @@ public class Scr_CellLogic : MonoBehaviour
     public int[,] Position;
 
     [SerializeField] private float ChanceToReproduce = 0.2f;
+    [SerializeField] private int CounterFromDirt = 0;
+
+    [SerializeField] private bool ChangedToShrub = false;
 
     private void Awake()
     {
         ConnectedTiles = new List<GameObject>();
+        CounterFromDirt = 0;
     }
 
     public void InitializeCellType(Scr_GameOfLife.GridNames Type)
@@ -52,29 +56,42 @@ public class Scr_CellLogic : MonoBehaviour
 
     public void StartLife()
     {
-        switch (CurrCellType)
+        if (CounterFromDirt > 10 && !ChangedToShrub && CurrCellType != Scr_GameOfLife.GridNames.Empty)
         {
-            case (Scr_GameOfLife.GridNames.Fire):
-                FireLife();
-                break;
-            case (Scr_GameOfLife.GridNames.Grass):
-                break;
-            case (Scr_GameOfLife.GridNames.Sheep):
-                SheepLife();
-                break;
-            case (Scr_GameOfLife.GridNames.Snail):
-                SnailLife();
-                break;
-            case (Scr_GameOfLife.GridNames.Tree):
-                TreeLife();
-                break;
-            case (Scr_GameOfLife.GridNames.Water):
-                break;
-            case (Scr_GameOfLife.GridNames.Dirt):
-                DirtLife();
-                break;
+            Debug.Log("Shrubbed");
+            CurrCellType = Scr_GameOfLife.GridNames.Shrub;
+            GetComponent<SpriteRenderer>().sprite = ManagerInstance.Shrub;
+            name = "Shrub";
+            ChangedToShrub = true;
         }
-        CurrLifetime++;
+        else
+        {
+            switch (CurrCellType)
+            {
+                case (Scr_GameOfLife.GridNames.Fire):
+                    FireLife();
+                    break;
+                case (Scr_GameOfLife.GridNames.Grass):
+                    break;
+                case (Scr_GameOfLife.GridNames.Sheep):
+                    SheepLife();
+                    break;
+                case (Scr_GameOfLife.GridNames.Snail):
+                    SnailLife();
+                    break;
+                case (Scr_GameOfLife.GridNames.Tree):
+                    TreeLife();
+                    break;
+                case (Scr_GameOfLife.GridNames.Water):
+                    break;
+                case (Scr_GameOfLife.GridNames.Dirt):
+                    DirtLife();
+                    break;
+                default:
+                    break;
+            }
+            CurrLifetime++;
+        }
     }
 
     #region Fire Logic
@@ -98,11 +115,13 @@ public class Scr_CellLogic : MonoBehaviour
                 else
                 {
                     ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
+                    CounterFromDirt++;
                 }
             }
             else
             {
                 ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
+                CounterFromDirt++;
             }
         }
     }
@@ -121,7 +140,7 @@ public class Scr_CellLogic : MonoBehaviour
     #region Sheep Logic
     void SheepLife()
     {
-        if(Mathf.FloorToInt(Random.value * 1.99f) >= ChanceToMove || CurrLifetime > 3)
+        if (Mathf.FloorToInt(Random.value * 1.99f) >= ChanceToMove || CurrLifetime > 3)
         {
             List<int[,]> PosFound = new List<int[,]>();
             List<int[,]> NeighbourSheeps = new List<int[,]>();
@@ -135,7 +154,7 @@ public class Scr_CellLogic : MonoBehaviour
                 ReplaceLocation(PosFound[RandomLoc], Scr_GameOfLife.GridNames.Sheep, 3);
                 ReplaceLocation(Position, Scr_GameOfLife.GridNames.Dirt, 0);
             }
-            else if(PosFound.Count > 0 && NeighbourSheeps.Count > 0)
+            else if (PosFound.Count > 0 && NeighbourSheeps.Count > 0)
             {
                 int RandomLoc = Random.Range(0, PosFound.Count);
                 if (Random.value > (ChanceToReproduce + 0.3f))
@@ -226,6 +245,7 @@ public class Scr_CellLogic : MonoBehaviour
                     return;
                 }
             }
+            CounterFromDirt = 0;
         }
     }
     #endregion

@@ -23,6 +23,9 @@ public class Scr_GameOfLife : MonoBehaviour
     [HideInInspector] public GameObject[,] GridCoordinates;
     [HideInInspector] public List<GameObject> GridPieces;
 
+    [HideInInspector] public bool SetupComplete = false;
+    public Sprite Shrub;
+
     public enum GridNames
     {
         Dirt,
@@ -32,6 +35,7 @@ public class Scr_GameOfLife : MonoBehaviour
         Snail,
         Tree,
         Water,
+        Shrub,
         Empty
     }
 
@@ -95,6 +99,7 @@ public class Scr_GameOfLife : MonoBehaviour
             }
 
             ParentObject.transform.position = new Vector2(5, 0);
+            SetupComplete = true;
         }
     }
 
